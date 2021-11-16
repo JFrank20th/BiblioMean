@@ -1,4 +1,3 @@
-import { response } from "express";
 import proveedores from "../models/proveedores.js";
 
 const registerProveedores = async (req, res) => {
@@ -23,7 +22,7 @@ const registerProveedores = async (req, res) => {
 const listProveedores = async (req, res) => {
   const proveedoresSchema = await proveedores.find();
   if (!proveedoresSchema || proveedoresSchema.length == 0)
-    return response.status(400).send({ Error: "Empty proveedor list" });
+    return res.status(400).send({ Error: "Empty proveedor list" });
   return res.status(200).send({ proveedoresSchema });
 };
 
@@ -31,7 +30,7 @@ const deleteProveedores = async (req, res) => {
   const proveedoresDelete = await proveedores.findByIdAndDelete({
     _id: req.params["_id"],
   });
-  return !clientesDelete
+  return !proveedoresDelete
     ? res.status(400).send("Proveedores no found")
     : res.status(200).send("Proveedores deleted");
 };

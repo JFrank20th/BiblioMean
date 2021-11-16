@@ -1,5 +1,7 @@
-import { response } from "express";
 import clientes from "../models/clientes.js";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import moment from "moment";
 
 const registerClientes = async (req, res) => {
   if (!req.body.name || !req.body.email || !req.body.password)
@@ -7,22 +9,27 @@ const registerClientes = async (req, res) => {
   const existingClientes = await clientes.findOne({ name: req.body.name });
   if (existingClientes)
     return res.status(400).send("The clientes already existing");
+
+  const hash = await bcrypt.hash(req.body.password, 10);
+
   const clientesSchema = new clientes({
     name: req.body.name,
     email: req.body.email,
-    password: req.body.password,
+    password: hash,
     registerDate: clientes.getDate,
     dbStatus: true,
   });
+
   const result = await clientesSchema.save();
-  if (!result) res.status(400).send("Failed to register clientes");
-  return res.status(200).send({ result });
+  return !result
+    ? res.status(400).send({ message: "Failed to register client" })
+    : res.status(200).send({ result });
 };
 
 const listClientes = async (req, res) => {
   const clientesSchema = await clientes.find();
   if (!clientesSchema || clientesSchema.length == 0)
-    return response.status(400).send({ Error: "Empty clientes list" });
+    return res.status(400).send({ Error: "Empty clientes list" });
   return res.status(200).send({ clientesSchema });
 };
 
@@ -55,9 +62,35 @@ const updateClientes = async (req, res) => {
     : res.status(200).send({ clientesUpdate });
 };
 
+const login = async (req, res) => {
+  if (!req.body.email || !req.body.password)
+    return res.status(400).send({ message: "Incomplete data" });
+  const clientesLogin = await clientes.findOne({ email: req.body.email });
+  if (!clientesLogin)
+    return res.status(400).send({ message: "Wrong email or password 1" });
+  const hash = await bcrypt.compare(req.body.password, clientesLogin.password);
+  if (!hash)
+    return res.status(400).send({ message: "Wrong email or password 2" });
+  try {
+    return res.status(200).json({
+      token: jwt.sign(
+        {
+          _id: clientesLogin._id,
+          name: clientesLogin.name,
+          iat: moment().unix(),
+        },
+        process.env.SK_JWT
+      ),
+    });
+  } catch (e) {
+    return res.status(400).send({ message: "login error" }, e);
+  }
+};
+
 export default {
   registerClientes,
   listClientes,
   deleteClientes,
   updateClientes,
+  login,
 };

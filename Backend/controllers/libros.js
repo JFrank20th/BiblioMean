@@ -1,4 +1,3 @@
-import { response } from "express";
 import libros from "../models/libros.js";
 const registerLibros = async (req, res) => {
   if (
@@ -30,7 +29,7 @@ const registerLibros = async (req, res) => {
 const listLibros = async (req, res) => {
   const librosSchema = await libros.find();
   if (!librosSchema || librosSchema.length == 0)
-    return response.status(400).send({ Error: "Empty libros list" });
+    return res.status(400).send({ Error: "Empty libros list" });
   return res.status(200).send({ librosSchema });
 };
 
