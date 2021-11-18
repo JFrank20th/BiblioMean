@@ -33,6 +33,13 @@ const listLibros = async (req, res) => {
   return res.status(200).send({ librosSchema });
 };
 
+const findlibro = async (req, res) => {
+  const librosId = await libros.findById({ _id: req.params["_id"] });
+  return !librosId
+    ? res.status(400).send({ message: "No search results" })
+    : res.status(200).send({ librosId });
+};
+
 const deleteLibros = async (req, res) => {
   const librosDelete = await libros.findByIdAndDelete({
     _id: req.params["_id"],
@@ -75,4 +82,4 @@ const updateLibros = async (req, res) => {
     : res.status(200).send({ librosUpdate });
 };
 
-export default { registerLibros, listLibros, deleteLibros, updateLibros };
+export default { registerLibros, listLibros, deleteLibros, updateLibros, findlibro };

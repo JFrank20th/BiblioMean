@@ -1,4 +1,5 @@
 import clientes from "../models/clientes.js";
+import role from "../models/role.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import moment from "moment";
@@ -6,24 +7,44 @@ import moment from "moment";
 const registerClientes = async (req, res) => {
   if (!req.body.name || !req.body.email || !req.body.password)
     return res.status(400).send("Incomplete data");
+
   const existingClientes = await clientes.findOne({ name: req.body.name });
   if (existingClientes)
     return res.status(400).send("The clientes already existing");
 
   const hash = await bcrypt.hash(req.body.password, 10);
 
+  const roleId = await role.findOne({name: "user"});
+  if(!roleId) return res.status(400).send({ message: "No role was assigned" });
+
+
   const clientesSchema = new clientes({
     name: req.body.name,
     email: req.body.email,
     password: hash,
+    roleId: roleId._id,
     registerDate: clientes.getDate,
     dbStatus: true,
   });
 
   const result = await clientesSchema.save();
-  return !result
-    ? res.status(400).send({ message: "Failed to register client" })
-    : res.status(200).send({ result });
+
+  try {
+    return res.status(200).json({
+      token: jwt.sign(
+        {
+          _id: result._id,
+          name: result.name,
+          roleId: result.roleId,
+          iat: moment().unix(),
+        },
+        process.env.SK_JWT
+      ),
+    });
+  } catch (e) {
+    return res.status(400).send({ message: "Register error" });
+  }
+
 };
 
 const listClientes = async (req, res) => {
@@ -68,6 +89,7 @@ const login = async (req, res) => {
   const clientesLogin = await clientes.findOne({ email: req.body.email });
   if (!clientesLogin)
     return res.status(400).send({ message: "Wrong email or password 1" });
+    
   const hash = await bcrypt.compare(req.body.password, clientesLogin.password);
   if (!hash)
     return res.status(400).send({ message: "Wrong email or password 2" });
@@ -77,6 +99,7 @@ const login = async (req, res) => {
         {
           _id: clientesLogin._id,
           name: clientesLogin.name,
+          roleId: clientesLogin.roleId,
           iat: moment().unix(),
         },
         process.env.SK_JWT
@@ -87,10 +110,45 @@ const login = async (req, res) => {
   }
 };
 
+
+
+
+const registerAdmin = async (req, res) => {
+  if (
+    !req.body.name ||
+    !req.body.email ||
+    !req.body.password ||
+    !req.body.roleId
+  )
+    return res.status(400).send({ message: "Incomplete data" });
+
+  const existingClientes = await clientes.findOne({ email: req.body.email });
+  if (existingClientes)
+    return res.status(400).send({ message: "The client is already registered" });
+
+  const passHash = await bcrypt.hash(req.body.password, 10);
+
+  const clientesRegister = new clientes({
+    name: req.body.name,
+    email: req.body.email,
+    password: passHash,
+    roleId: req.body.roleId,
+    dbStatus: true,
+  });
+
+  const result = await clientesRegister.save();
+  return !result
+    ? res.status(400).send({ message: "Failed to register client" })
+    : res.status(200).send({ result });
+};
+
+
+
 export default {
   registerClientes,
   listClientes,
   deleteClientes,
   updateClientes,
   login,
+  registerAdmin,
 };
