@@ -1,5 +1,5 @@
 import proveedores from "../models/proveedores.js";
-
+//admin
 const registerProveedores = async (req, res) => {
   if (!req.body.name || !req.body.address)
     return res.status(400).send("Incomplete data");
@@ -18,14 +18,14 @@ const registerProveedores = async (req, res) => {
 
   return res.status(200).send({ result });
 };
-
+//admin
 const listProveedores = async (req, res) => {
   const proveedoresSchema = await proveedores.find();
   if (!proveedoresSchema || proveedoresSchema.length == 0)
     return res.status(400).send({ Error: "Empty proveedor list" });
   return res.status(200).send({ proveedoresSchema });
 };
-
+//admin list-proveedor
 const deleteProveedores = async (req, res) => {
   const proveedoresDelete = await proveedores.findByIdAndDelete({
     _id: req.params["_id"],
@@ -34,7 +34,7 @@ const deleteProveedores = async (req, res) => {
     ? res.status(400).send("Proveedores no found")
     : res.status(200).send("Proveedores deleted");
 };
-
+//admin list-proveedor
 const updateProveedores = async (req, res) => {
   if (!req.body.name || !req.body.address)
     return res.status(400).send("Incomplete data");

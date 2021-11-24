@@ -1,4 +1,5 @@
 import libros from "../models/libros.js";
+//admin
 const registerLibros = async (req, res) => {
   if (
     !req.body.name ||
@@ -25,21 +26,21 @@ const registerLibros = async (req, res) => {
   if (!result) res.status(400).send("Failed to register libros");
   return res.status(200).send({ result });
 };
-
+//admin y usuarios 
 const listLibros = async (req, res) => {
   const librosSchema = await libros.find();
   if (!librosSchema || librosSchema.length == 0)
     return res.status(400).send({ Error: "Empty libros list" });
   return res.status(200).send({ librosSchema });
 };
-
+//admin y usuarios list-book
 const findlibro = async (req, res) => {
   const librosId = await libros.findById({ _id: req.params["_id"] });
   return !librosId
     ? res.status(400).send({ message: "No search results" })
     : res.status(200).send({ librosId });
 };
-
+//admin list-book
 const deleteLibros = async (req, res) => {
   const librosDelete = await libros.findByIdAndDelete({
     _id: req.params["_id"],
@@ -48,7 +49,7 @@ const deleteLibros = async (req, res) => {
     ? res.status(400).send("libros no found")
     : res.status(200).send("libros deleted");
 };
-
+//admin list-book
 const updateLibros = async (req, res) => {
   if (
     !req.body.name ||

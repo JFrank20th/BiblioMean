@@ -4,6 +4,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import moment from "moment";
 
+//admin
 const registerClientes = async (req, res) => {
   if (!req.body.name || !req.body.email || !req.body.password)
     return res.status(400).send("Incomplete data");
@@ -47,6 +48,7 @@ const registerClientes = async (req, res) => {
 
 };
 
+//admin
 const listClientes = async (req, res) => {
   const clientesSchema = await clientes.find();
   if (!clientesSchema || clientesSchema.length == 0)
@@ -54,6 +56,7 @@ const listClientes = async (req, res) => {
   return res.status(200).send({ clientesSchema });
 };
 
+//admin
 const deleteClientes = async (req, res) => {
   const clientesDelete = await clientes.findByIdAndDelete({
     _id: req.params["_id"],
@@ -63,6 +66,7 @@ const deleteClientes = async (req, res) => {
     : res.status(200).send("Clientes deleted");
 };
 
+//admin y user ojo
 const updateClientes = async (req, res) => {
   if (!req.body.name || !req.body.email || !req.body.password)
     return res.status(400).send("Incomplete data");
@@ -83,13 +87,14 @@ const updateClientes = async (req, res) => {
     : res.status(200).send({ clientesUpdate });
 };
 
+//admin y user
 const login = async (req, res) => {
   if (!req.body.email || !req.body.password)
     return res.status(400).send({ message: "Incomplete data" });
   const clientesLogin = await clientes.findOne({ email: req.body.email });
   if (!clientesLogin)
     return res.status(400).send({ message: "Wrong email or password 1" });
-    
+
   const hash = await bcrypt.compare(req.body.password, clientesLogin.password);
   if (!hash)
     return res.status(400).send({ message: "Wrong email or password 2" });
@@ -110,9 +115,7 @@ const login = async (req, res) => {
   }
 };
 
-
-
-
+//admin iria con el register-clientes
 const registerAdmin = async (req, res) => {
   if (
     !req.body.name ||
@@ -141,8 +144,6 @@ const registerAdmin = async (req, res) => {
     ? res.status(400).send({ message: "Failed to register client" })
     : res.status(200).send({ result });
 };
-
-
 
 export default {
   registerClientes,
